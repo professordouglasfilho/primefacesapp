@@ -5,6 +5,7 @@ import java.util.List;
 import javax.servlet.http.HttpSession;
 
 import br.com.douglasfernandes.model.Perfil;
+import br.com.douglasfernandes.pojos.LoginResponse;
 
 /**
  * Como manipular perfis no banco de dados.
@@ -12,7 +13,7 @@ import br.com.douglasfernandes.model.Perfil;
  *
  */
 public interface PerfilDao {
-	public String logar(Perfil perfil, HttpSession session);
+	public LoginResponse logar(Perfil perfil, HttpSession session);
 	public String adicionar(Perfil perfil);
 	public String atualizar(Perfil perfil);
 	public String remover(long id);

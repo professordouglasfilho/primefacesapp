@@ -2,6 +2,7 @@ package br.com.douglasfernandes.jpa;
 
 import java.util.List;
 
+import javax.faces.application.FacesMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import br.com.douglasfernandes.dao.PerfilDao;
 import br.com.douglasfernandes.model.Perfil;
+import br.com.douglasfernandes.pojos.LoginResponse;
 import br.com.douglasfernandes.utils.Logs;
 
 /**
@@ -25,7 +27,8 @@ public class PerfilJpa implements PerfilDao{
 	private EntityManager manager;
 	
 	@Override
-	public Login logar(Perfil perfil, HttpSession session) {
+	public LoginResponse logar(Perfil perfil, HttpSession session) {
+		LoginResponse response = new LoginResponse();
 		try{
 			if(perfil != null){
 				Query query = manager.createQuery("select p from Perfil as p where p.nome = :nome and p.senha = :senha");
@@ -36,22 +39,30 @@ public class PerfilJpa implements PerfilDao{
 					perfil.setSenha("");
 					session.setAttribute("logado", perfil);
 					Logs.info("[PerfilJpa]::logar::Usuario logado");
-					return "Seja bem vindo, "+perfil.getNome();
+					response.setLoggedIn(true);
+					response.setMessage(new FacesMessage(FacesMessage.SEVERITY_INFO, "Bem Vindo!", "Seja bem vindo, "+perfil.getNome()));
+					return response;
 				}
 				else{
 					Logs.warn("[PerfilJpa]::logar::Usuario ou senha incorretos: "+perfil.toString());
-					return "Usuário ou senha incorretos.";
+					response.setLoggedIn(false);
+					response.setMessage(new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro de login!", "Usuário e/ou senha incorretos."));
+					return response;
 				}
 			}
 			else{
 				Logs.warn("[PerfilJpa]::logar::objeto perfil nulo.");
-				return "Usuário ou senha nulos.";
+				response.setLoggedIn(false);
+				response.setMessage(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro de login!", "Usuário e/ou senha nulos."));
+				return response;
 			}
 		}
 		catch(Exception e){
 			Logs.warn("[PerfilJpa]::logar::Falha fatal ao tentar logar perfil. Excecao:");
 			e.printStackTrace();
-			return "Erro ao tentar logar: Falha no servidor.";
+			response.setLoggedIn(false);
+			response.setMessage(new FacesMessage(FacesMessage.SEVERITY_FATAL, "Erro de login!", "Erro no servidor, por favor, contate o suporte técnico."));
+			return response;
 		}
 	}
 

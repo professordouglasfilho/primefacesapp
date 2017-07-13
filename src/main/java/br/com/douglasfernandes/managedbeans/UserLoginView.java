@@ -1,6 +1,5 @@
 package br.com.douglasfernandes.managedbeans;
 
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
@@ -15,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.douglasfernandes.dao.PerfilDao;
 import br.com.douglasfernandes.model.Perfil;
+import br.com.douglasfernandes.pojos.LoginResponse;
 
 /**
  * Apresenta e trata tela de login
@@ -37,25 +37,12 @@ public class UserLoginView {
    
     public void login(ActionEvent event) {
         RequestContext context = RequestContext.getCurrentInstance();
-        FacesMessage message = null;
-        boolean loggedIn = false;
         
-        String username = perfil.getNome();
-        String password = perfil.getSenha();
+        HttpServletRequest request = (HttpServletRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest();
+    	HttpSession session = request.getSession();
+        LoginResponse response = perfilDao.logar(perfil, session);
          
-        if(username != null && username.equals("admin") && password != null && password.equals("admin")) {
-        	HttpServletRequest request = (HttpServletRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest();
-        	HttpSession session = request.getSession();
-        	session.setAttribute("logado", perfil);
-        	
-            loggedIn = true;
-            message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Bem Vindo!", username);
-        } else {
-            loggedIn = false;
-            message = new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro de Login.", "Credenciais inválidas!");
-        }
-         
-        FacesContext.getCurrentInstance().addMessage(null, message);
-        context.addCallbackParam("loggedIn", loggedIn);
+        FacesContext.getCurrentInstance().addMessage(null, response.getMessage());
+        context.addCallbackParam("loggedIn", response.getLoggedIn());
     }
 }
