@@ -46,6 +46,6 @@ public class Perfil {
 	
 	@Override
 	public String toString() {
-		return "Perfil [id=" + id + ", nome=" + nome + ", senha=" + senha + ", email=" + email + "]";
+		return "Perfil [id=" + id + ", nome=" + nome + ", senha= ********" + ", email=" + email + "]";
 	}
 }

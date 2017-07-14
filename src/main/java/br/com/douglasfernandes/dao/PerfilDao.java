@@ -19,6 +19,7 @@ public interface PerfilDao {
 	public String remover(long id);
 	public Perfil pegarPorId(long id);
 	public Perfil pegarPorNome(String nome);
+	public Perfil pegarPorEmail(String email);
 	public List<Perfil> listar();
 	
 	public void primeiroAcesso();

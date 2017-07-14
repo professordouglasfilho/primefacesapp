@@ -8,13 +8,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.primefaces.context.RequestContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.transaction.annotation.Transactional;
 
 import br.com.douglasfernandes.dao.PerfilDao;
+import br.com.douglasfernandes.dataservices.PerfilService;
 import br.com.douglasfernandes.model.Perfil;
 import br.com.douglasfernandes.pojos.LoginResponse;
+import br.com.douglasfernandes.utils.Logs;
 
 /**
  * Apresenta e trata tela de login
@@ -23,12 +22,7 @@ import br.com.douglasfernandes.pojos.LoginResponse;
  */
 @ManagedBean
 @SessionScoped
-@Transactional
 public class UserLoginView {
-	@Autowired
-	@Qualifier("perfilJpa")
-	PerfilDao perfilDao;
-	
 	private Perfil perfil = new Perfil();
 	
 	public Perfil getPerfil(){
@@ -37,9 +31,14 @@ public class UserLoginView {
    
     public void login(ActionEvent event) {
         RequestContext context = RequestContext.getCurrentInstance();
+        Logs.info("[UserLoginView]::login:::Contexto de pagina obtido: "+context);
         
         HttpServletRequest request = (HttpServletRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest();
     	HttpSession session = request.getSession();
+    	Logs.info("[UserLoginView]::login:::Sessao de pagina obtida: "+session);
+    	
+    	PerfilDao perfilDao = PerfilService.getAcesso();
+    	Logs.info("[UserLoginView]::login:::Acesso a base de perfis garantido: "+perfilDao);
         LoginResponse response = perfilDao.logar(perfil, session);
          
         FacesContext.getCurrentInstance().addMessage(null, response.getMessage());

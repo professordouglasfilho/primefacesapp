@@ -101,5 +101,11 @@ public class MainInterceptor extends HandlerInterceptorAdapter implements PhaseL
 	public PhaseId getPhaseId() {
 		return PhaseId.ANY_PHASE;
 	}
+
+	@Override
+	public void beforePhase(PhaseEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

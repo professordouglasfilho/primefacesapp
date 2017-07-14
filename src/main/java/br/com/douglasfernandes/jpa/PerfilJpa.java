@@ -31,17 +31,26 @@ public class PerfilJpa implements PerfilDao{
 		LoginResponse response = new LoginResponse();
 		try{
 			if(perfil != null){
-				Query query = manager.createQuery("select p from Perfil as p where p.nome = :nome and p.senha = :senha");
-				query.setParameter("nome", perfil.getNome());
-				query.setParameter("senha", perfil.getSenha());
-				Perfil perfilOk = (Perfil) query.getSingleResult();
-				if(perfilOk != null){
-					perfil.setSenha("");
-					session.setAttribute("logado", perfil);
-					Logs.info("[PerfilJpa]::logar::Usuario logado");
-					response.setLoggedIn(true);
-					response.setMessage(new FacesMessage(FacesMessage.SEVERITY_INFO, "Bem Vindo!", "Seja bem vindo, "+perfil.getNome()));
-					return response;
+				String nomeOuEmail = perfil.getNome();
+				Perfil encontrado = pegarPorNome(nomeOuEmail);
+				if(encontrado == null)
+					encontrado = pegarPorEmail(nomeOuEmail);
+				
+				if(encontrado != null){
+					String senha = perfil.getSenha();
+					if(senha.equals(encontrado.getSenha())){
+						session.setAttribute("logado", perfil);
+						Logs.info("[PerfilJpa]::logar::Usuario logado");
+						response.setLoggedIn(true);
+						response.setMessage(new FacesMessage(FacesMessage.SEVERITY_INFO, "Bem Vindo!", "Seja bem vindo, "+perfil.getNome()));
+						return response;
+					}
+					else{
+						Logs.warn("[PerfilJpa]::logar::Usuario ou senha incorretos: "+perfil.toString());
+						response.setLoggedIn(false);
+						response.setMessage(new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro de login!", "Usuário e/ou senha incorretos."));
+						return response;
+					}
 				}
 				else{
 					Logs.warn("[PerfilJpa]::logar::Usuario ou senha incorretos: "+perfil.toString());
@@ -61,7 +70,7 @@ public class PerfilJpa implements PerfilDao{
 			Logs.warn("[PerfilJpa]::logar::Falha fatal ao tentar logar perfil. Excecao:");
 			e.printStackTrace();
 			response.setLoggedIn(false);
-			response.setMessage(new FacesMessage(FacesMessage.SEVERITY_FATAL, "Erro de login!", "Erro no servidor, por favor, contate o suporte técnico."));
+			response.setMessage(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro de login!", "Usuário e/ou senha nulos."));
 			return response;
 		}
 	}
@@ -86,35 +95,152 @@ public class PerfilJpa implements PerfilDao{
 
 	@Override
 	public Perfil pegarPorId(long id) {
-		// TODO Auto-generated method stub
-		return null;
+		try{
+			Query query = manager.createQuery("select p from Perfil as p where p.id = :id");
+			query.setParameter("id", id);
+			Perfil encontrado = (Perfil)query.getSingleResult();
+			if(encontrado != null){
+				Logs.info("[PerfilJpa]::pegarPorId:::Perfil encontrado: " + encontrado.toString());
+				return encontrado;
+			}
+			else{
+				Logs.warn("[PerfilJpa]::pegarPorId:::Não existe perfil com este ID. [" + id + "]");
+				return null;
+			}
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::pegarPorId:::Erro ao tentar pegar perfil por ID. Excecao:");
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
 	public Perfil pegarPorNome(String nome) {
-		// TODO Auto-generated method stub
-		return null;
+		try{
+			Query query = manager.createQuery("select p from Perfil as p where p.nome = :nome");
+			query.setParameter("nome", nome);
+			Perfil encontrado = (Perfil)query.getSingleResult();
+			if(encontrado != null){
+				Logs.info("[PerfilJpa]::pegarPorNome:::Perfil encontrado: " + encontrado.toString());
+				return encontrado;
+			}
+			else{
+				Logs.warn("[PerfilJpa]::pegarPorNome:::Não existe perfil com este NOME. [" + nome + "]");
+				return null;
+			}
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::pegarPorNome:::Erro ao tentar pegar perfil por NOME. Excecao:");
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public Perfil pegarPorEmail(String email) {
+		try{
+			Query query = manager.createQuery("select p from Perfil as p where p.email = :email");
+			query.setParameter("email", email);
+			Perfil encontrado = (Perfil)query.getSingleResult();
+			if(encontrado != null){
+				Logs.info("[PerfilJpa]::pegarPorEmail:::Perfil encontrado: " + encontrado.toString());
+				return encontrado;
+			}
+			else{
+				Logs.warn("[PerfilJpa]::pegarPorEmail:::Não existe perfil com este EMAIL. [" + email + "]");
+				return null;
+			}
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::pegarPorEmail:::Erro ao tentar pegar perfil por EMAIL. Excecao:");
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
 	public List<Perfil> listar() {
-		// TODO Auto-generated method stub
-		return null;
+		try{
+			Query query = manager.createQuery("select p from Perfil as p");
+			@SuppressWarnings("unchecked")
+			List<Perfil> perfis = query.getResultList();
+			if(perfis != null && perfis.size() > 0){
+				Logs.info("[PerfilJpa]::listar:::Perfis encontrado: " + perfis.size());
+				return perfis;
+			}
+			else{
+				Logs.warn("[PerfilJpa]::listar:::Nenhum perfil listado.");
+				return null;
+			}
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::listar:::Erro ao tentar listar perfis. Excecao:");
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	private boolean jaTemComEsteNome(String nome){
+		try{
+			Perfil encontrado = pegarPorNome(nome);
+			if(encontrado != null){
+				Logs.info("[PerfilJpa]::jaTemComEsteNome:::Ja existe perfil cadastrado com este nome [" + nome + "]");
+				return true;
+			}
+			else{
+				Logs.info("[PerfilJpa]::jaTemComEsteNome:::Nao existe perfil cadastrado com este nome [" + nome + "]");
+				return false;
+			}
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::jaTemComEsteNome:::Erro ao tentar verificar se ja existe perfil com este nome [" + nome + "]. Excecao:");
+			e.printStackTrace();
+			return true;
+		}
+	}
+	
+	private boolean jaTemComEsteEmail(String email){
+		try{
+			Perfil encontrado = pegarPorEmail(email);
+			if(encontrado != null){
+				Logs.info("[PerfilJpa]::jaTemComEsteEmail:::Ja existe perfil cadastrado com este email [" + email + "]");
+				return true;
+			}
+			else{
+				Logs.info("[PerfilJpa]::jaTemComEsteEmail:::Nao existe perfil cadastrado com este email [" + email + "]");
+				return false;
+			}
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::jaTemComEsteEmail:::Erro ao tentar verificar se ja existe perfil com este email [" + email + "]. Excecao:");
+			e.printStackTrace();
+			return true;
+		}
 	}
 	
 	@Override
 	public void primeiroAcesso(){
 		try{
-			Perfil perfil = new Perfil();
-			perfil.setNome("admin");
-			perfil.setSenha("admin");
-			perfil.setEmail("admin@exemplo.com.br");
+			String nome = "admin";
+			String email = "admin@exemplo.com.br";
 			
-			manager.persist(perfil);
+			if(!jaTemComEsteNome(nome)){
+				if(!jaTemComEsteEmail(email)){
+					Perfil perfil = new Perfil();
+					perfil.setNome(nome);
+					perfil.setSenha(nome);
+					perfil.setEmail(email);
+					
+					manager.persist(perfil);
+					
+					Logs.info("[PerfilJpa]::primeiroAcesso:::Novo usuario cadastrado [" + perfil.getNome() + "]");
+				}
+			}
 		}
 		catch(Exception e){
+			Logs.warn("[PerfilJpa]::primeiroAcesso:::Erro ao tentar executar primeiro acesso ao banco de dados. Excecao:");
 			e.printStackTrace();
-			Logs.warn("[PerfilJpa]::primeiroAcesso:::Erro ao tentar executar primeiro acesso ao banco de dados.");
 		}
 	}
 
