@@ -35,21 +35,21 @@ public class MainInterceptor extends HandlerInterceptorAdapter implements PhaseL
 			  Perfil logado = (Perfil)request.getSession().getAttribute("logado");
 			  
 			  if(uri.contains("/resources/")){
-				  Logs.info("[MainInterceptor INFO]::preHandler:::is resource file");
+				  Logs.info("[MainInterceptor INFO]::preHandler:::arquivo de resource");
 				  return true;
 			  }
 			  
 			  if(uri.endsWith("login")){
-				  Logs.info("[MainInterceptor INFO]::preHandler:::is login page");
+				  Logs.info("[MainInterceptor INFO]::preHandler:::pagina de login");
 				  return true;
 			  }
 			  
 			  if(logado != null){
-				  Logs.info("[MainInterceptor INFO]::preHandler:::you can pass");
+				  Logs.info("[MainInterceptor INFO]::preHandler:::acesso permitido");
 				  return true;
 			  }
 			  else{
-				  Logs.info("[MainInterceptor INFO]::preHandler:::redirect to login");
+				  Logs.info("[MainInterceptor INFO]::preHandler:::redirecionado para login");
 				  response.sendRedirect("login");
 				  return false;
 			  }
@@ -76,19 +76,19 @@ public class MainInterceptor extends HandlerInterceptorAdapter implements PhaseL
 			if(!uri.endsWith("login.xhtml")){
 				if(!uri.contains("/resources/")){
 					if(logado == null){
-						Logs.info("[MainInterceptor INFO]::beforePhase:::redirect to login");
+						Logs.info("[MainInterceptor INFO]::beforePhase:::redirecionado para login");
 						response.sendRedirect("login");
 					}
 					else{
-						Logs.info("[MainInterceptor INFO]::beforePhase:::you can pass");
+						Logs.info("[MainInterceptor INFO]::beforePhase:::acesso permitido");
 					}
 				}
 				else{
-					Logs.info("[MainInterceptor INFO]::beforePhase:::is resource file");
+					Logs.info("[MainInterceptor INFO]::beforePhase:::arquivo de resource");
 				}
 			}
 			else{
-				Logs.info("[MainInterceptor INFO]::beforePhase:::is login page");
+				Logs.info("[MainInterceptor INFO]::beforePhase:::pagina de login");
 			}
 		}
 		catch(Exception e){
@@ -104,7 +104,6 @@ public class MainInterceptor extends HandlerInterceptorAdapter implements PhaseL
 
 	@Override
 	public void beforePhase(PhaseEvent event) {
-		// TODO Auto-generated method stub
 		
 	}
 	
