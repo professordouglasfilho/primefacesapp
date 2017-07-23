@@ -8,12 +8,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.primefaces.context.RequestContext;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.jsf.FacesContextUtils;
 
-import br.com.douglasfernandes.dao.PerfilDao;
-import br.com.douglasfernandes.dataservices.PerfilService;
+import br.com.douglasfernandes.dataservices.DataService;
+import br.com.douglasfernandes.jpa.PerfilJpa;
 import br.com.douglasfernandes.model.Perfil;
-import br.com.douglasfernandes.pojos.LoginResponse;
-import br.com.douglasfernandes.utils.Logs;
+import br.com.douglasfernandes.pojos.DefaultResponse;
 
 /**
  * Apresenta e trata tela de login
@@ -31,17 +32,17 @@ public class UserLoginView {
    
     public void login(ActionEvent event) {
         RequestContext context = RequestContext.getCurrentInstance();
-        Logs.info("[UserLoginView]::login:::Contexto de pagina obtido: "+context);
         
         HttpServletRequest request = (HttpServletRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest();
     	HttpSession session = request.getSession();
-    	Logs.info("[UserLoginView]::login:::Sessao de pagina obtida: "+session);
     	
-    	PerfilDao perfilDao = PerfilService.getAcesso();
-    	Logs.info("[UserLoginView]::login:::Acesso a base de perfis garantido: "+perfilDao);
-        LoginResponse response = perfilDao.logar(perfil, session);
+    	FacesContext fc = FacesContext.getCurrentInstance();
+    	WebApplicationContext wac = FacesContextUtils.getWebApplicationContext(fc);
+    	PerfilJpa perfilJpa = DataService.getPerfilService(wac).getPerfilJpa();
+    	
+        DefaultResponse response = perfilJpa.logar(perfil, session);
          
-        FacesContext.getCurrentInstance().addMessage(null, response.getMessage());
-        context.addCallbackParam("loggedIn", response.getLoggedIn());
+        FacesContext.getCurrentInstance().addMessage(null, response.getMensagem());
+        context.addCallbackParam("loggedIn", response.getStatus());
     }
 }

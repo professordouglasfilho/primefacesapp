@@ -4,15 +4,15 @@ import java.util.List;
 
 import javax.faces.application.FacesMessage;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Repository;
 
-import br.com.douglasfernandes.dao.PerfilDao;
 import br.com.douglasfernandes.model.Perfil;
-import br.com.douglasfernandes.pojos.LoginResponse;
+import br.com.douglasfernandes.pojos.DefaultResponse;
 import br.com.douglasfernandes.utils.Logs;
 
 /**
@@ -21,14 +21,13 @@ import br.com.douglasfernandes.utils.Logs;
  *
  */
 @Repository
-public class PerfilJpa implements PerfilDao{
+public class PerfilJpa{
 
 	@PersistenceContext
 	private EntityManager manager;
 	
-	@Override
-	public LoginResponse logar(Perfil perfil, HttpSession session) {
-		LoginResponse response = new LoginResponse();
+	public DefaultResponse logar(Perfil perfil, HttpSession session) {
+		DefaultResponse response = new DefaultResponse();
 		try{
 			if(perfil != null){
 				String nomeOuEmail = perfil.getNome();
@@ -41,59 +40,159 @@ public class PerfilJpa implements PerfilDao{
 					if(senha.equals(encontrado.getSenha())){
 						session.setAttribute("logado", perfil);
 						Logs.info("[PerfilJpa]::logar::Usuario logado");
-						response.setLoggedIn(true);
-						response.setMessage(new FacesMessage(FacesMessage.SEVERITY_INFO, "Bem Vindo!", "Seja bem vindo, "+perfil.getNome()));
+						response.setStatus(true);
+						response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_INFO, "Bem Vindo!", "Seja bem vindo, "+perfil.getNome()));
 						return response;
 					}
 					else{
 						Logs.warn("[PerfilJpa]::logar::Usuario ou senha incorretos: "+perfil.toString());
-						response.setLoggedIn(false);
-						response.setMessage(new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro de login!", "Usuário e/ou senha incorretos."));
+						response.setStatus(false);
+						response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro de login!", "Usuário e/ou senha incorretos."));
 						return response;
 					}
 				}
 				else{
 					Logs.warn("[PerfilJpa]::logar::Usuario ou senha incorretos: "+perfil.toString());
-					response.setLoggedIn(false);
-					response.setMessage(new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro de login!", "Usuário e/ou senha incorretos."));
+					response.setStatus(false);
+					response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro de login!", "Usuário e/ou senha incorretos."));
 					return response;
 				}
 			}
 			else{
 				Logs.warn("[PerfilJpa]::logar::objeto perfil nulo.");
-				response.setLoggedIn(false);
-				response.setMessage(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro de login!", "Usuário e/ou senha nulos."));
+				response.setStatus(false);
+				response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro de login!", "Usuário e/ou senha nulos."));
 				return response;
 			}
 		}
 		catch(Exception e){
 			Logs.warn("[PerfilJpa]::logar::Falha fatal ao tentar logar perfil. Excecao:");
 			e.printStackTrace();
-			response.setLoggedIn(false);
-			response.setMessage(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro de login!", "Usuário e/ou senha nulos."));
+			response.setStatus(false);
+			response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro de login!", "Usuário e/ou senha nulos."));
 			return response;
 		}
 	}
 
-	@Override
-	public String adicionar(Perfil perfil) {
-		// TODO Auto-generated method stub
-		return null;
+	public DefaultResponse adicionar(Perfil perfil) {
+		DefaultResponse response = new DefaultResponse();
+		try{
+			if(perfil != null){
+				String nome = perfil.getNome();
+				String email = perfil.getEmail();
+				String senha = perfil.getSenha();
+				if(!"".equals(nome) && !"".equals(email) && !"".equals(senha)){
+					if(jaTemComEsteNome(nome)){
+						Logs.warn("[PerfilJpa]::adicionar:::Erro ao tentar adicionar perfil: ja tem cadastrado.");
+						response.setStatus(false);
+						response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Já existe um perfil com este nome."));
+					}
+					else{
+						if(jaTemComEsteEmail(email)){
+							Logs.warn("[PerfilJpa]::adicionar:::Erro ao tentar adicionar perfil: ja tem cadastrado.");
+							response.setStatus(false);
+							response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Já existe um perfil com este email."));
+						}
+						else{
+							manager.persist(perfil);
+							Logs.warn("[PerfilJpa]::adicionar:::Perfil [" + perfil.getNome() + "] cadastrado com exito.");
+							response.setStatus(true);
+							response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso","Perfil cadastrado!"));
+						}
+					}
+				}
+				else{
+					Logs.warn("[PerfilJpa]::adicionar:::Erro ao tentar adicionar perfil. NULO");
+					response.setStatus(false);
+					response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Perfil com nome ou senha inválidos."));
+				}
+			}
+			else{
+				Logs.warn("[PerfilJpa]::adicionar:::Erro ao tentar adicionar perfil. NULO");
+				response.setStatus(false);
+				response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Perfil com nome ou senha inválidos."));
+			}
+			
+			return response;
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::adicionar:::Erro ao tentar adicionar perfil. Excecao:");
+			e.printStackTrace();
+			return response;
+		}
 	}
 
-	@Override
-	public String atualizar(Perfil perfil) {
-		// TODO Auto-generated method stub
-		return null;
+	public DefaultResponse atualizar(Perfil perfil) {
+		DefaultResponse response = new DefaultResponse();
+		try{
+			if(perfil != null){
+				long id = perfil.getId();
+				String nome = perfil.getNome();
+				String email = perfil.getEmail();
+				String senha = perfil.getSenha();
+				if(!"".equals(nome) && !"".equals(email) && !"".equals(senha)){
+					Perfil conflito = pegarPorNome(nome);
+					if(conflito != null && conflito.getId() != id){
+						Logs.warn("[PerfilJpa]::atualizar:::Erro ao tentar atualizar perfil: ja tem cadastrado.");
+						response.setStatus(false);
+						response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Já existe um perfil com este nome."));
+					}
+					else{
+						conflito = pegarPorEmail(email);
+						if(conflito != null && conflito.getId() != id){
+							Logs.warn("[PerfilJpa]::atualizar:::Erro ao tentar atualizar perfil: ja tem cadastrado.");
+							response.setStatus(false);
+							response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Já existe um perfil com este email."));
+						}
+						else{
+							manager.merge(perfil);
+							Logs.warn("[PerfilJpa]::atualizar:::Perfil [" + perfil.getNome() + "] atualizado com exito.");
+							response.setStatus(true);
+							response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso","Perfil atualizado!"));
+						}
+					}
+				}
+				else{
+					Logs.warn("[PerfilJpa]::atualizar:::Erro ao tentar atualizar perfil. nome e/ou senha nulos");
+					response.setStatus(false);
+					response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Perfil com nome ou senha inválidos."));
+				}
+			}
+			else{
+				Logs.warn("[PerfilJpa]::adicionar:::Erro ao tentar atualizar perfil. nulo");
+				response.setStatus(false);
+				response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro","Perfil com nome ou senha inválidos."));
+			}
+			
+			return response;
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::adicionar:::Erro ao tentar atualizar perfil. Excecao:");
+			e.printStackTrace();
+			return response;
+		}
 	}
 
-	@Override
-	public String remover(long id) {
-		// TODO Auto-generated method stub
-		return null;
+	public DefaultResponse remover(long id) {
+		DefaultResponse response = new DefaultResponse();
+		
+		try{
+			Perfil perfil = pegarPorId(id);
+			manager.remove(perfil);
+			response.setStatus(true);
+			response.setMensagem(new FacesMessage(FacesMessage.SEVERITY_INFO,"Sucesso","Perfil removido com sucesso."));
+			
+			Logs.info("[PerfilJpa]::remover::perfil removido.");
+			
+			return response;
+		}
+		catch(Exception e){
+			Logs.warn("[PerfilJpa]::remover::Erro ao tentar remover perfil. Excecao:");
+			e.printStackTrace();
+			return response;
+		}
 	}
 
-	@Override
 	public Perfil pegarPorId(long id) {
 		try{
 			Query query = manager.createQuery("select p from Perfil as p where p.id = :id");
@@ -108,6 +207,10 @@ public class PerfilJpa implements PerfilDao{
 				return null;
 			}
 		}
+		catch(NoResultException e){
+			Logs.warn("[PerfilJpa]::pegarPorId:::Erro ao tentar pegar perfil por ID. NULO");
+			return null;
+		}
 		catch(Exception e){
 			Logs.warn("[PerfilJpa]::pegarPorId:::Erro ao tentar pegar perfil por ID. Excecao:");
 			e.printStackTrace();
@@ -115,7 +218,6 @@ public class PerfilJpa implements PerfilDao{
 		}
 	}
 
-	@Override
 	public Perfil pegarPorNome(String nome) {
 		try{
 			Query query = manager.createQuery("select p from Perfil as p where p.nome = :nome");
@@ -130,6 +232,10 @@ public class PerfilJpa implements PerfilDao{
 				return null;
 			}
 		}
+		catch(NoResultException e){
+			Logs.warn("[PerfilJpa]::pegarPorNome:::Erro ao tentar pegar perfil por Nome. NULO");
+			return null;
+		}
 		catch(Exception e){
 			Logs.warn("[PerfilJpa]::pegarPorNome:::Erro ao tentar pegar perfil por NOME. Excecao:");
 			e.printStackTrace();
@@ -137,7 +243,6 @@ public class PerfilJpa implements PerfilDao{
 		}
 	}
 	
-	@Override
 	public Perfil pegarPorEmail(String email) {
 		try{
 			Query query = manager.createQuery("select p from Perfil as p where p.email = :email");
@@ -152,6 +257,10 @@ public class PerfilJpa implements PerfilDao{
 				return null;
 			}
 		}
+		catch(NoResultException e){
+			Logs.warn("[PerfilJpa]::pegarPorEmail:::Erro ao tentar pegar perfil por Email. NULO");
+			return null;
+		}
 		catch(Exception e){
 			Logs.warn("[PerfilJpa]::pegarPorEmail:::Erro ao tentar pegar perfil por EMAIL. Excecao:");
 			e.printStackTrace();
@@ -159,7 +268,6 @@ public class PerfilJpa implements PerfilDao{
 		}
 	}
 
-	@Override
 	public List<Perfil> listar() {
 		try{
 			Query query = manager.createQuery("select p from Perfil as p");
@@ -219,29 +327,15 @@ public class PerfilJpa implements PerfilDao{
 		}
 	}
 	
-	@Override
 	public void primeiroAcesso(){
-		try{
-			String nome = "admin";
-			String email = "admin@exemplo.com.br";
-			
-			if(!jaTemComEsteNome(nome)){
-				if(!jaTemComEsteEmail(email)){
-					Perfil perfil = new Perfil();
-					perfil.setNome(nome);
-					perfil.setSenha(nome);
-					perfil.setEmail(email);
-					
-					manager.persist(perfil);
-					
-					Logs.info("[PerfilJpa]::primeiroAcesso:::Novo usuario cadastrado [" + perfil.getNome() + "]");
-				}
-			}
-		}
-		catch(Exception e){
-			Logs.warn("[PerfilJpa]::primeiroAcesso:::Erro ao tentar executar primeiro acesso ao banco de dados. Excecao:");
-			e.printStackTrace();
-		}
+		String nome = "admin";
+		String email = "admin@exemplo.com.br";
+		
+		Perfil perfil = new Perfil();
+		perfil.setNome(nome);
+		perfil.setSenha(nome);
+		perfil.setEmail(email);
+		
+		adicionar(perfil);
 	}
-
 }

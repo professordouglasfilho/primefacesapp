@@ -29,7 +29,7 @@
 	
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
 		<property name="driverClassName" value="org.h2.Driver"/>
-	    <property name="url" value="jdbc:h2:~/database;MODE=MySQL;MV_STORE=FALSE;AUTO_SERVER=TRUE"/>
+	    <property name="url" value="jdbc:h2:~/h2db/database;MODE=MySQL;MV_STORE=FALSE;AUTO_SERVER=TRUE"/>
 	    <property name="username" value="root"/>
 	    <property name="password" value="admin"/>
 	</bean>

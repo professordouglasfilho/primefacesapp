@@ -1,28 +1,28 @@
 package br.com.douglasfernandes.dataservices;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.douglasfernandes.dao.PerfilDao;
+import br.com.douglasfernandes.jpa.PerfilJpa;
 import br.com.douglasfernandes.utils.Logs;
 
-/**
- * Classe de serviço de acesso a dados do banco de dados.
- * @author douglas.f.filho
- *
- */
 @Controller
 @Transactional
 public class PerfilService {
-	private static PerfilDao perfilDao;
 	
-	public static PerfilDao getAcesso(){
-		return perfilDao;
+	PerfilJpa perfilJpa;
+
+	public PerfilJpa getPerfilJpa() {
+		return perfilJpa;
 	}
 	
-	public static void setAcesso(PerfilDao dao){
-		Logs.info("[PerfilService]::setAcesso:::"+perfilDao);
-		perfilDao = dao;
+	@Autowired
+	public PerfilService(PerfilJpa perfilJpa) {
+		this.perfilJpa = perfilJpa;
+		if(perfilJpa == null)
+			Logs.info("[PerfilDaoService]::construtor::perfilJpa nulo");
+		else
+			Logs.info("[PerfilDaoService]::construtor::perfilJpa setado");
 	}
-	
 }
