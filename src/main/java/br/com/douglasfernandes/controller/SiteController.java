@@ -1,19 +1,14 @@
 package br.com.douglasfernandes.controller;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import br.com.douglasfernandes.dataservices.DataService;
-import br.com.douglasfernandes.jpa.PerfilJpa;
+import br.com.douglasfernandes.dataservices.dao.PerfilDao;
+import br.com.douglasfernandes.dataservices.factory.DataService;
 
 @Controller
-@Transactional
 public class SiteController {
 	
 	@RequestMapping(value={"/","home"})
@@ -23,9 +18,7 @@ public class SiteController {
 	
 	@RequestMapping("login")
 	public String login(HttpSession session){
-		ServletContext sc = session.getServletContext();
-		WebApplicationContext wac = WebApplicationContextUtils.getWebApplicationContext(sc);
-		PerfilJpa perfilJpa = DataService.getPerfilService(wac).getPerfilJpa();
+		PerfilDao perfilJpa = DataService.getPerfilService(session.getServletContext()).getPerfilJpa();
 		perfilJpa.primeiroAcesso();
 		return "login";
 	}

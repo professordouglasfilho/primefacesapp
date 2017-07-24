@@ -11,7 +11,7 @@
    <provider>org.hibernate.ejb.HibernatePersistence</provider>
 
    <!-- entidade mapaeada -->
-	<class>br.com.douglasfernandes.model.Perfil</class>
+	<class>br.com.douglasfernandes.dataservices.entities.Perfil</class>
    
    <properties>
   	<property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect" />

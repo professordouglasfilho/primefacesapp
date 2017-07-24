@@ -1,24 +1,24 @@
-package br.com.douglasfernandes.dataservices;
+package br.com.douglasfernandes.dataservices.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.douglasfernandes.jpa.PerfilJpa;
+import br.com.douglasfernandes.dataservices.dao.PerfilDao;
 import br.com.douglasfernandes.utils.Logs;
 
 @Controller
 @Transactional
 public class PerfilService {
 	
-	PerfilJpa perfilJpa;
+	PerfilDao perfilJpa;
 
-	public PerfilJpa getPerfilJpa() {
+	public PerfilDao getPerfilJpa() {
 		return perfilJpa;
 	}
 	
 	@Autowired
-	public PerfilService(PerfilJpa perfilJpa) {
+	public PerfilService(PerfilDao perfilJpa) {
 		this.perfilJpa = perfilJpa;
 		if(perfilJpa == null)
 			Logs.info("[PerfilDaoService]::construtor::perfilJpa nulo");

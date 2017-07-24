@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import br.com.douglasfernandes.model.Perfil;
+import br.com.douglasfernandes.dataservices.entities.Perfil;
 import br.com.douglasfernandes.utils.Logs;
 
 /**

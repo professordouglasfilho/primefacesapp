@@ -1,4 +1,4 @@
-package br.com.douglasfernandes.jpa;
+package br.com.douglasfernandes.dataservices.dao;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Repository;
 
-import br.com.douglasfernandes.model.Perfil;
+import br.com.douglasfernandes.dataservices.entities.Perfil;
 import br.com.douglasfernandes.pojos.DefaultResponse;
 import br.com.douglasfernandes.utils.Logs;
 
@@ -21,7 +21,7 @@ import br.com.douglasfernandes.utils.Logs;
  *
  */
 @Repository
-public class PerfilJpa{
+public class PerfilDao{
 
 	@PersistenceContext
 	private EntityManager manager;

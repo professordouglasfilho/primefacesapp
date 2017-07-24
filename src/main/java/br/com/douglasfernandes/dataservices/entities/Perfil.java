@@ -1,4 +1,4 @@
-package br.com.douglasfernandes.model;
+package br.com.douglasfernandes.dataservices.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
